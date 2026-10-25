@@ -1,0 +1,66 @@
+services:
+  init-logs:
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /logs/app /logs/nginx /positions /loki &&
+        touch /logs/app/app.log &&
+        chown -R 1000:1000 /logs/app &&
+        chmod 0644 /logs/app/app.log &&
+        rm -f /logs/nginx/access.log /logs/nginx/error.log &&
+        touch /logs/nginx/access.log /logs/nginx/error.log &&
+        chown -R 101:101 /logs/nginx &&
+        chmod 0644 /logs/nginx/access.log /logs/nginx/error.log &&
+        chown -R 10001:10001 /positions /loki
+    volumes:
+      - ro_promtail_positions:/positions
+      - ro_loki_data:/loki
+
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: ro-loki
+    restart: unless-stopped
+    user: "10001:10001"
+    command: ["-config.file=/etc/loki/loki-config.yml"]
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./logging/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - ro_loki_data:/loki
+    networks:
+      - ro_monitoring_network
+    depends_on:
+      init-logs:
+        condition: service_completed_successfully
+
+  promtail:
+    image: grafana/promtail:3.4.2
+    container_name: ro-promtail
+    restart: unless-stopped
+    user: "10001:10001"
+    command: ["-config.file=/etc/promtail/promtail-config.yml"]
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./logging/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - ro_nginx_logs:/logs/nginx:ro
+      - ro_app_logs:/logs/app:ro
+      - ro_promtail_positions:/positions
+    networks:
+      - ro_monitoring_network
+    depends_on:
+      loki:
+        condition: service_started
+      init-logs:
+        condition: service_completed_successfully
+
+volumes:
+  ro_loki_data:
+    name: ro_loki_data
+  ro_promtail_positions:
+    name: ro_promtail_positions
