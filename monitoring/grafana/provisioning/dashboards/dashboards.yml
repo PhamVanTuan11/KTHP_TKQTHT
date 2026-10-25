@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: "De12-Restaurant-Order-Dashboards"
+    orgId: 1
+    folder: "Đề 12 - Quản lý Nhà hàng / Order"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 15
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

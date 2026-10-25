@@ -1,0 +1,38 @@
+groups:
+  - name: restaurant_order_alerts
+    rules:
+      - alert: ExporterTargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Exporter target {{ $labels.job }} is DOWN"
+          description: "Target {{ $labels.instance }} in job {{ $labels.job }} has been unreachable for more than 1 minute."
+
+      - alert: NginxServiceDown
+        expr: nginx_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Nginx Reverse Proxy stub_status unreachable"
+          description: "nginx-exporter reports nginx_up == 0."
+
+      - alert: PostgresDatabaseDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL Database ro_db unreachable"
+          description: "postgres-exporter reports pg_up == 0."
+
+      - alert: HighContainerMemoryUsage
+        expr: container_memory_working_set_bytes{job="cadvisor",name=~"ro-.*"} > 536870912
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} memory usage exceeds 512 MiB"
+          description: "Working set memory of {{ $labels.name }} is above 512 MiB for 3 minutes."
