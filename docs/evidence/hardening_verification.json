@@ -1,0 +1,58 @@
+{
+  "verified_at": "2026-10-25T13:01:17.301Z",
+  "topic": "Đề 12: Hệ thống Quản lý Nhà hàng / Order",
+  "checks": {
+    "non_root_containers": {
+      "ro_app_id": "uid=1000(node) gid=1000(node) groups=1000(node)",
+      "ro_nginx_id": "uid=101(nginx) gid=101(nginx) groups=101(nginx)",
+      "ro_loki_user": "10001:10001",
+      "ro_promtail_user": "10001:10001",
+      "passed": true
+    },
+    "readonly_rootfs_and_capabilities": {
+      "ro_app_readonly_rootfs": true,
+      "ro_app_cap_drop": [
+        "ALL"
+      ],
+      "ro_app_security_opt": [
+        "no-new-privileges:true"
+      ],
+      "ro_nginx_readonly_rootfs": true,
+      "ro_nginx_cap_drop": [
+        "ALL"
+      ],
+      "ro_nginx_security_opt": [
+        "no-new-privileges:true"
+      ],
+      "passed": true
+    },
+    "network_isolation": {
+      "ro_database_network_internal": true,
+      "ro_postgres_port_bindings": "{}",
+      "ro_app_port_bindings": "{}",
+      "passed": true
+    },
+    "database_least_privilege": {
+      "ro_app_privileges": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "ddl_create_table_blocked": true,
+      "passed": true
+    },
+    "nginx_config_test": {
+      "output": "",
+      "passed": true
+    },
+    "secrets_excluded_from_git": {
+      "ignored": {
+        ".env": true,
+        "certs/server.key": true,
+        "backups/latest_ro_db_backup.sql": true
+      },
+      "passed": true
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "executed_at": "2026-10-25T13:02:14.911Z",
+  "topic": "Đề 12: Hệ thống Quản lý Nhà hàng / Order",
+  "student": "Phạm Văn Tuân (DTC245200485 - CNTT K23I)",
+  "total_tests": 15,
+  "passed_tests": 15,
+  "failed_tests": 0,
+  "results": [
+    {
+      "id": 1,
+      "name": "Chuyển hướng HTTP sang HTTPS",
+      "passed": true,
+      "details": "HTTP 301; Location: https://127.0.0.1:8443/"
+    },
+    {
+      "id": 2,
+      "name": "Healthcheck và kết nối DB",
+      "passed": true,
+      "details": "HTTP 200; status=UP, db=ro_db, user=ro_app"
+    },
+    {
+      "id": 3,
+      "name": "Kiểm tra Security Headers",
+      "passed": true,
+      "details": "X-Content-Type-Options=nosniff (count=1), X-Frame-Options=DENY (count=1), HSTS=max-age=31536000; includeSubDomains"
+    },
+    {
+      "id": 4,
+      "name": "Kiểm soát truy cập ẩn danh",
+      "passed": true,
+      "details": "HTTP 302 -> /login?redirect=%2Forders"
+    },
+    {
+      "id": 5,
+      "name": "Sinh mã bảo vệ CSRF Token",
+      "passed": true,
+      "details": "CSRF token length=48"
+    },
+    {
+      "id": 6,
+      "name": "Đăng nhập sai và ghi log an ninh",
+      "passed": true,
+      "details": "HTTP 401 (sinh sự kiện login_failed trong app.log và audit_logs)"
+    },
+    {
+      "id": 7,
+      "name": "Đăng nhập đúng tài khoản Admin",
+      "passed": true,
+      "details": "HTTP 302 -> /"
+    },
+    {
+      "id": 8,
+      "name": "Cờ bảo mật Session Cookie",
+      "passed": true,
+      "details": "ro_session_id flags: HttpOnly, Secure, SameSite=Lax"
+    },
+    {
+      "id": 9,
+      "name": "Thao tác CRUD: Tạo đơn hàng mới",
+      "passed": true,
+      "details": "HTTP 302 -> /orders/6"
+    },
+    {
+      "id": 10,
+      "name": "Thao tác CRUD: Xem chi tiết đơn hàng",
+      "passed": true,
+      "details": "HTTP 200; hiển thị đúng mã ORD-999 và tổng tiền 130.000 ₫"
+    },
+    {
+      "id": 11,
+      "name": "Thao tác CRUD: Xóa đơn hàng thử nghiệm",
+      "passed": true,
+      "details": "HTTP 302; giữ nguyên 4 đơn hàng mẫu ban đầu"
+    },
+    {
+      "id": 12,
+      "name": "Chặn yêu cầu thiếu CSRF Token",
+      "passed": true,
+      "details": "HTTP 403 Forbidden"
+    },
+    {
+      "id": 13,
+      "name": "Xử lý đường dẫn không tồn tại",
+      "passed": true,
+      "details": "HTTP 404 Not Found"
+    },
+    {
+      "id": 14,
+      "name": "Kiểm tra Prometheus Targets",
+      "passed": true,
+      "details": "4/4 UP: cadvisor, nginx, postgres, prometheus"
+    },
+    {
+      "id": 15,
+      "name": "Kiểm tra máy chủ Grafana",
+      "passed": true,
+      "details": "HTTP 200; database=ok, version=13.2.2"
+    }
+  ]
+}

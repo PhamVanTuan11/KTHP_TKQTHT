@@ -1,0 +1,144 @@
+{
+  "verified_at": "2026-10-25T13:06:37.760Z",
+  "prometheus_snapshots": {
+    "up": [
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "cadvisor:8080",
+          "job": "cadvisor"
+        },
+        "value": [
+          1792933597.644,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "postgres-exporter:9187",
+          "job": "postgres"
+        },
+        "value": [
+          1792933597.644,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "prometheus:9090",
+          "job": "prometheus"
+        },
+        "value": [
+          1792933597.644,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "nginx-exporter:9113",
+          "job": "nginx"
+        },
+        "value": [
+          1792933597.644,
+          "1"
+        ]
+      }
+    ],
+    "nginx_up": [
+      {
+        "metric": {
+          "__name__": "nginx_up",
+          "instance": "nginx-exporter:9113",
+          "job": "nginx"
+        },
+        "value": [
+          1792933597.65,
+          "1"
+        ]
+      }
+    ],
+    "pg_up": [
+      {
+        "metric": {
+          "__name__": "pg_up",
+          "instance": "postgres-exporter:9187",
+          "job": "postgres"
+        },
+        "value": [
+          1792933597.652,
+          "1"
+        ]
+      }
+    ],
+    "pg_stat_database_numbackends{datname=\"ro_db\"}": [
+      {
+        "metric": {
+          "__name__": "pg_stat_database_numbackends",
+          "datid": "16384",
+          "datname": "ro_db",
+          "instance": "postgres-exporter:9187",
+          "job": "postgres"
+        },
+        "value": [
+          1792933597.653,
+          "3"
+        ]
+      }
+    ],
+    "sum(rate(nginx_http_requests_total[2m]))": [
+      {
+        "metric": {},
+        "value": [
+          1792933597.655,
+          "0.171436735082623"
+        ]
+      }
+    ],
+    "sum(rate(pg_stat_database_xact_commit{datname=\"ro_db\"}[2m]))": [
+      {
+        "metric": {},
+        "value": [
+          1792933597.657,
+          "2.219153293013953"
+        ]
+      }
+    ],
+    "count(container_memory_working_set_bytes{job=\"cadvisor\",name!=\"\"})": [
+      {
+        "metric": {},
+        "value": [
+          1792933597.66,
+          "14"
+        ]
+      }
+    ]
+  },
+  "loki_logql_snapshots": {
+    "{job=\"nginx\"}": {
+      "count": 10,
+      "sample_lines": [
+        "{\"timestamp\":\"2026-10-25T13:02:14+00:00\",\"client_ip\":\"172.22.0.1\",\"method\":\"GET\",\"uri\":\"/not-found-page-xyz-999\",\"status\":404,\"body_bytes_sent\":3071,\"request_time\":0.006,\"http_referer\":\"\",\"http_user_agent\":\"\"}",
+        "{\"timestamp\":\"2026-10-25T13:02:14+00:00\",\"client_ip\":\"172.22.0.1\",\"method\":\"POST\",\"uri\":\"/orders\",\"status\":403,\"body_bytes_sent\":3026,\"request_time\":0.005,\"http_referer\":\"\",\"http_user_agent\":\"\"}",
+        "{\"timestamp\":\"2026-10-25T13:02:14+00:00\",\"client_ip\":\"172.22.0.1\",\"method\":\"POST\",\"uri\":\"/orders/6/delete\",\"status\":302,\"body_bytes_sent\":111,\"request_time\":0.011,\"http_referer\":\"\",\"http_user_agent\":\"\"}"
+      ]
+    },
+    "{job=\"nginx\"} | json | status >= 400": {
+      "count": 6,
+      "sample_lines": [
+        "{\"timestamp\":\"2026-10-25T13:01:15+00:00\",\"client_ip\":\"172.22.0.1\",\"method\":\"POST\",\"uri\":\"/login\",\"status\":401,\"body_bytes_sent\":4039,\"request_time\":0.098,\"http_referer\":\"\",\"http_user_agent\":\"\"}",
+        "{\"timestamp\":\"2026-10-25T13:02:14+00:00\",\"client_ip\":\"172.22.0.1\",\"method\":\"POST\",\"uri\":\"/login\",\"status\":401,\"body_bytes_sent\":4039,\"request_time\":0.073,\"http_referer\":\"\",\"http_user_agent\":\"\"}",
+        "{\"timestamp\":\"2026-10-25T13:02:14+00:00\",\"client_ip\":\"172.22.0.1\",\"method\":\"GET\",\"uri\":\"/not-found-page-xyz-999\",\"status\":404,\"body_bytes_sent\":3071,\"request_time\":0.006,\"http_referer\":\"\",\"http_user_agent\":\"\"}"
+      ]
+    },
+    "{job=\"app\"} | json | event=\"login_failed\"": {
+      "count": 2,
+      "sample_lines": [
+        "{\"timestamp\":\"2026-10-25T13:02:14.721Z\",\"level\":\"warn\",\"service\":\"restaurant-order-app\",\"event\":\"login_failed\",\"message\":\"Authentication failed for user\",\"username\":\"admin\",\"status\":401,\"ip\":\"172.22.0.1\"}",
+        "{\"timestamp\":\"2026-10-25T13:01:15.204Z\",\"level\":\"warn\",\"service\":\"restaurant-order-app\",\"event\":\"login_failed\",\"message\":\"Authentication failed for user\",\"username\":\"admin\",\"status\":401,\"ip\":\"172.22.0.1\"}"
+      ]
+    }
+  }
+}

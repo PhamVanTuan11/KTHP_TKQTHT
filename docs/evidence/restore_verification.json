@@ -1,0 +1,46 @@
+{
+  "verified_at": "2026-10-25T13:03:20.644Z",
+  "source_database": "ro_db",
+  "target_test_database": "ro_restore_test",
+  "backup_file": "ro_db_backup_20261025_200316.sql",
+  "backup_size_bytes": 25062,
+  "all_tables_matched": true,
+  "comparison": [
+    {
+      "table": "users",
+      "source_db_count": 3,
+      "restored_db_count": 3,
+      "matched": true
+    },
+    {
+      "table": "dining_tables",
+      "source_db_count": 6,
+      "restored_db_count": 6,
+      "matched": true
+    },
+    {
+      "table": "menu_items",
+      "source_db_count": 8,
+      "restored_db_count": 8,
+      "matched": true
+    },
+    {
+      "table": "orders",
+      "source_db_count": 4,
+      "restored_db_count": 4,
+      "matched": true
+    },
+    {
+      "table": "order_items",
+      "source_db_count": 12,
+      "restored_db_count": 12,
+      "matched": true
+    },
+    {
+      "table": "audit_logs",
+      "source_db_count": 13,
+      "restored_db_count": 13,
+      "matched": true
+    }
+  ]
+}
