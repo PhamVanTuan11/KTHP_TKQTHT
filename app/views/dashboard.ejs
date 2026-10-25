@@ -1,0 +1,108 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Bảng điều khiển Quản lý Nhà hàng / Order</h1>
+    <p class="page-subtitle">
+      Theo dõi thời gian thực danh mục món ăn, trạng thái phục vụ bàn ăn và tiến độ chế biến đơn hàng từ PostgreSQL 16 (`ro_db`).
+    </p>
+  </div>
+  <div class="inline-actions">
+    <a href="/orders" class="btn btn-primary">+ Tạo / Quản lý Đơn hàng</a>
+    <a href="/menu" class="btn btn-secondary">Quản lý Thực đơn</a>
+    <a href="/tables" class="btn btn-secondary">Sơ đồ Bàn ăn</a>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Tổng số Món ăn Thực đơn</div>
+    <div class="stat-value"><%= stats.total_menu_items %></div>
+    <div class="stat-meta"><%= stats.available_menu_items %> món đang sẵn sàng phục vụ</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-label">Công suất Bàn ăn</div>
+    <div class="stat-value"><%= stats.occupied_tables %> / <%= stats.total_tables %></div>
+    <div class="stat-meta">Bàn đang có khách (Occupied) trên tổng số bàn</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-label">Tổng số Đơn hàng (Order)</div>
+    <div class="stat-value"><%= stats.total_orders %></div>
+    <div class="stat-meta"><%= stats.active_orders %> đơn đang chế biến / phục vụ</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Doanh thu Đơn phục vụ & Đã thu</div>
+    <div class="stat-value"><%= formatVND(stats.total_revenue) %></div>
+    <div class="stat-meta">Tổng hợp tự động từ chi tiết món gọi</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">📋 Đơn hàng / Phiếu gọi món gần đây</h2>
+      <a href="/orders" class="btn btn-secondary btn-sm">Xem tất cả đơn hàng →</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Bàn ăn</th>
+            <th>Khách hàng</th>
+            <th>Món đã lên</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% recentOrders.forEach(o => { %>
+            <tr>
+              <td><strong><%= o.order_code %></strong></td>
+              <td>
+                <strong><%= o.table_code %></strong><br />
+                <span style="font-size:12px; color:var(--muted);"><%= o.table_name %></span>
+              </td>
+              <td>
+                <%= o.customer_name %><br />
+                <span style="font-size:12px; color:var(--muted);"><%= o.guest_count %> khách · <%= o.payment_method %></span>
+              </td>
+              <td>
+                <strong><%= o.served_item_count %> / <%= o.item_count %></strong> món
+              </td>
+              <td><strong><%= formatVND(o.total_amount) %></strong></td>
+              <td><span class="badge badge-<%= o.status %>"><%= o.status %></span></td>
+              <td>
+                <a href="/orders/<%= o.id %>" class="btn btn-secondary btn-sm">Mở Order</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">🪑 Trạng thái Bàn ăn trực tiếp</h2>
+      <a href="/tables" class="btn btn-secondary btn-sm">Quản lý bàn</a>
+    </div>
+    <div class="table-cards">
+      <% tables.forEach(t => { %>
+        <div class="table-tile <%= t.status %>">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <strong><%= t.table_code %></strong>
+            <span class="badge badge-<%= t.status %>"><%= t.status %></span>
+          </div>
+          <div style="font-weight:600; font-size:13px;"><%= t.table_name %></div>
+          <div style="font-size:12px; color:var(--muted); margin-top:2px;">
+            <%= t.area %> · <%= t.capacity %> ghế
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

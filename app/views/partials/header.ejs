@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> | <%= studentInfo.topicCode %> - <%= studentInfo.name %></title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="/" class="brand">
+        <span class="brand-badge"><%= studentInfo.topicCode %></span>
+        <div>
+          <div class="brand-title">Hệ thống Quản lý Nhà hàng / Order</div>
+          <div class="brand-sub">Thực đơn món ăn · Đơn hàng (Order) · Sơ đồ bàn ăn · PostgreSQL 16</div>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="/" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'dashboard' ? 'active' : '' %>">Tổng quan</a>
+        <a href="/menu" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'menu' ? 'active' : '' %>">Thực đơn (Món ăn)</a>
+        <a href="/orders" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'orders' ? 'active' : '' %>">Đơn hàng (Order)</a>
+        <a href="/tables" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'tables' ? 'active' : '' %>">Bàn ăn</a>
+        <a href="/audit" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'audit' ? 'active' : '' %>">Audit Logs</a>
+      </nav>
+      <div class="user-box">
+        <% if (currentUser) { %>
+          <span class="user-pill">👤 <strong><%= currentUser.username %></strong> (<%= currentUser.role %>)</span>
+          <form method="POST" action="/logout" style="display:inline;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="btn btn-secondary btn-sm">Đăng xuất</button>
+          </form>
+        <% } else { %>
+          <a href="/login" class="btn btn-primary btn-sm">Đăng nhập quản trị</a>
+        <% } %>
+      </div>
+    </div>
+  </header>
+
+  <div class="student-banner">
+    <div class="student-banner-inner">
+      <div>
+        <strong>Học phần:</strong> Triển khai và Quản trị Hệ thống Phần mềm &nbsp;|&nbsp;
+        <strong>Đề tài:</strong> <%= studentInfo.topicCode %> – <%= studentInfo.topicTitle %>
+      </div>
+      <div>
+        <strong>SV:</strong> <%= studentInfo.name %> &nbsp;·&nbsp;
+        <strong>MSSV:</strong> <%= studentInfo.id %> &nbsp;·&nbsp;
+        <strong>Lớp:</strong> <%= studentInfo.className %> &nbsp;·&nbsp;
+        <strong>GVHD:</strong> <%= studentInfo.instructor %>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">

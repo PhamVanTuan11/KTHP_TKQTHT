@@ -1,0 +1,130 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🪑 Quản lý Sơ đồ Bàn ăn & Khu vực</h1>
+    <p class="page-subtitle">Quản lý danh sách bàn ăn tại Tầng 1, Phòng VIP Tầng 2 và Khu vực Sân vườn.</p>
+  </div>
+</div>
+
+<% if (flash) { %>
+  <div class="alert alert-success">✅ <%= flash %></div>
+<% } %>
+<% if (error) { %>
+  <div class="alert alert-error">⚠️ <%= error %></div>
+<% } %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">➕ Thêm bàn ăn mới</h2>
+  </div>
+  <form method="POST" action="/tables" class="form-grid">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <div class="form-group">
+      <label for="table_code">Mã bàn *</label>
+      <input type="text" id="table_code" name="table_code" required placeholder="VD: TB-07" />
+    </div>
+    <div class="form-group">
+      <label for="table_name">Tên bàn *</label>
+      <input type="text" id="table_name" name="table_name" required placeholder="VD: Bàn 07 - Ban công" />
+    </div>
+    <div class="form-group">
+      <label for="area">Khu vực phục vụ *</label>
+      <select id="area" name="area">
+        <option value="Tầng 1 - Sảnh chính">Tầng 1 - Sảnh chính</option>
+        <option value="Tầng 2 - Phòng VIP">Tầng 2 - Phòng VIP</option>
+        <option value="Khu vực Sân vườn">Khu vực Sân vườn</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="capacity">Sức chứa (ghế) *</label>
+      <input type="number" id="capacity" name="capacity" min="1" max="30" value="4" required />
+    </div>
+    <div class="form-group">
+      <label for="status">Trạng thái ban đầu</label>
+      <select id="status" name="status">
+        <% tableStatuses.forEach(s => { %>
+          <option value="<%= s %>"><%= s %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="note">Ghi chú bàn</label>
+      <input type="text" id="note" name="note" placeholder="Ghi chú vị trí / đặt trước..." />
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary">+ Thêm Bàn ăn</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">🗺️ Danh sách Bàn ăn (<%= tables.length %> bàn)</h2>
+    <form method="GET" action="/tables" class="inline-actions">
+      <select name="area">
+        <option value="">-- Tất cả khu vực --</option>
+        <option value="Tầng 1 - Sảnh chính" <%= filters.area === 'Tầng 1 - Sảnh chính' ? 'selected' : '' %>>Tầng 1 - Sảnh chính</option>
+        <option value="Tầng 2 - Phòng VIP" <%= filters.area === 'Tầng 2 - Phòng VIP' ? 'selected' : '' %>>Tầng 2 - Phòng VIP</option>
+        <option value="Khu vực Sân vườn" <%= filters.area === 'Khu vực Sân vườn' ? 'selected' : '' %>>Khu vực Sân vườn</option>
+      </select>
+      <select name="status">
+        <option value="">-- Mọi trạng thái --</option>
+        <% tableStatuses.forEach(s => { %>
+          <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-secondary btn-sm">Lọc</button>
+      <a href="/tables" class="btn btn-secondary btn-sm">Xóa lọc</a>
+    </form>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mã bàn</th>
+          <th>Tên bàn ăn</th>
+          <th>Khu vực</th>
+          <th>Sức chứa</th>
+          <th>Order đang mở</th>
+          <th>Trạng thái hiện tại</th>
+          <th>Ghi chú</th>
+          <th>Cập nhật trạng thái / Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% tables.forEach(t => { %>
+          <tr>
+            <td><strong><%= t.table_code %></strong></td>
+            <td><strong><%= t.table_name %></strong></td>
+            <td><%= t.area %></td>
+            <td><strong><%= t.capacity %></strong> ghế</td>
+            <td><%= t.active_order_count %> đơn</td>
+            <td><span class="badge badge-<%= t.status %>"><%= t.status %></span></td>
+            <td><span style="font-size:12.5px; color:var(--muted);"><%= t.note %></span></td>
+            <td>
+              <div class="inline-actions">
+                <form method="POST" action="/tables/<%= t.id %>/status" class="inline-actions">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <select name="status" style="padding:4px 8px; font-size:12px;">
+                    <% tableStatuses.forEach(s => { %>
+                      <option value="<%= s %>" <%= t.status === s ? 'selected' : '' %>><%= s %></option>
+                    <% }) %>
+                  </select>
+                  <button type="submit" class="btn btn-secondary btn-sm">Cập nhật</button>
+                </form>
+                <form method="POST" action="/tables/<%= t.id %>/delete" style="display:inline;">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

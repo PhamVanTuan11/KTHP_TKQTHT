@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🛡️ Nhật ký Hoạt động & Kiểm toán (Audit Logs)</h1>
+    <p class="page-subtitle">Ghi vết toàn bộ sự kiện xác thực và thao tác thêm, cập nhật, xóa món ăn, đơn hàng, bàn ăn trong PostgreSQL (`audit_logs`).</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">📜 60 Sự kiện Kiểm toán gần nhất (<%= logs.length %> bản ghi)</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Thời điểm</th>
+          <th>Tài khoản</th>
+          <th>Hành động (Action)</th>
+          <th>Thực thể</th>
+          <th>Mã định danh</th>
+          <th>Chi tiết</th>
+          <th>Địa chỉ IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% logs.forEach(item => { %>
+          <tr>
+            <td>#<%= item.id %></td>
+            <td><%= new Date(item.created_at).toLocaleString('vi-VN') %></td>
+            <td><strong><%= item.username %></strong></td>
+            <td>
+              <% if (item.action.includes('FAILED') || item.action.includes('DELETE')) { %>
+                <span class="badge badge-danger"><%= item.action %></span>
+              <% } else if (item.action.includes('CREATE') || item.action.includes('SUCCESS')) { %>
+                <span class="badge badge-success"><%= item.action %></span>
+              <% } else { %>
+                <span class="badge badge-info"><%= item.action %></span>
+              <% } %>
+            </td>
+            <td><code><%= item.entity_type %></code></td>
+            <td><strong><%= item.entity_id %></strong></td>
+            <td><%= item.details %></td>
+            <td><code><%= item.ip_address %></code></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

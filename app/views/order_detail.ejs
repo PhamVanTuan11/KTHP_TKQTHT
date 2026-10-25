@@ -1,0 +1,168 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🧾 Chi tiết Đơn hàng <%= order.order_code %> — <%= order.table_code %> (<%= order.table_name %>)</h1>
+    <p class="page-subtitle">
+      Khách hàng: <strong><%= order.customer_name %></strong> (<%= order.guest_count %> khách) ·
+      Khu vực: <strong><%= order.area %></strong> ·
+      Người tạo: <strong><%= order.created_by %></strong>
+    </p>
+  </div>
+  <div class="inline-actions">
+    <a href="/orders" class="btn btn-secondary">← Quay lại Danh sách Order</a>
+  </div>
+</div>
+
+<% if (flash) { %>
+  <div class="alert alert-success">✅ <%= flash %></div>
+<% } %>
+<% if (error) { %>
+  <div class="alert alert-error">⚠️ <%= error %></div>
+<% } %>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Mã đơn & Bàn phục vụ</div>
+    <div class="stat-value" style="font-size:21px;"><%= order.order_code %> · <%= order.table_code %></div>
+    <div class="stat-meta"><%= order.table_name %> (<%= order.area %>)</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-label">Trạng thái Đơn hàng</div>
+    <div class="stat-value" style="font-size:21px;"><span class="badge badge-<%= order.status %>" style="font-size:15px;"><%= order.status %></span></div>
+    <div class="stat-meta">Trạng thái bàn: <%= order.table_status %></div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-label">Tiến độ Phục vụ Món</div>
+    <% const servedCount = items.filter(i => i.item_status === 'Served').length; %>
+    <% const pct = items.length > 0 ? Math.round((servedCount / items.length) * 100) : 0; %>
+    <div class="stat-value" style="font-size:21px;"><%= servedCount %> / <%= items.length %> món (<%= pct %>%)</div>
+    <div class="stat-meta">Phương thức TT: <%= order.payment_method %></div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Tổng cộng Hóa đơn</div>
+    <div class="stat-value" style="font-size:21px;"><%= formatVND(order.total_amount) %></div>
+    <div class="stat-meta">Tính tự động từ chi tiết món gọi</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">🍲 Danh sách Món ăn trong Đơn hàng (<%= items.length %> dòng)</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Mã món</th>
+            <th>Tên món ăn</th>
+            <th>ĐVT</th>
+            <th>SL</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+            <th>Trạng thái bếp</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% items.forEach(item => { %>
+            <tr>
+              <td><strong><%= item.menu_code %></strong></td>
+              <td>
+                <strong><%= item.menu_name %></strong><br />
+                <span style="font-size:12px; color:var(--muted);"><%= item.note || item.menu_category %></span>
+              </td>
+              <td><%= item.menu_unit %></td>
+              <td><strong><%= item.quantity %></strong></td>
+              <td><%= formatVND(item.unit_price) %></td>
+              <td><strong><%= formatVND(Number(item.quantity) * Number(item.unit_price)) %></strong></td>
+              <td><span class="badge badge-<%= item.item_status %>"><%= item.item_status %></span></td>
+              <td>
+                <div class="inline-actions">
+                  <form method="POST" action="/orders/<%= order.id %>/items/<%= item.id %>/status" class="inline-actions">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                    <select name="item_status" style="padding:4px 7px; font-size:12px;">
+                      <option value="Queued" <%= item.item_status === 'Queued' ? 'selected' : '' %>>Queued</option>
+                      <option value="Cooking" <%= item.item_status === 'Cooking' ? 'selected' : '' %>>Cooking</option>
+                      <option value="Served" <%= item.item_status === 'Served' ? 'selected' : '' %>>Served</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary btn-sm">Lưu</button>
+                  </form>
+                  <form method="POST" action="/orders/<%= order.id %>/items/<%= item.id %>/delete" style="display:inline;">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                    <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">➕ Gọi thêm món vào Bàn <%= order.table_code %></h2>
+      </div>
+      <form method="POST" action="/orders/<%= order.id %>/items" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <div class="form-group">
+          <label for="menu_item_id">Chọn món trong thực đơn *</label>
+          <select id="menu_item_id" name="menu_item_id" required>
+            <% menuItems.forEach(m => { %>
+              <option value="<%= m.id %>"><%= m.code %> - <%= m.name %> (<%= formatVND(m.price) %>/<%= m.unit %>)</option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="quantity">Số lượng *</label>
+          <input type="number" id="quantity" name="quantity" min="1" max="30" value="1" required />
+        </div>
+        <div class="form-group">
+          <label for="item_status">Trạng thái chế biến</label>
+          <select id="item_status" name="item_status">
+            <option value="Queued">Queued (Chờ bếp)</option>
+            <option value="Cooking">Cooking (Đang chế biến)</option>
+            <option value="Served">Served (Đã lên bàn)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="note">Ghi chú món (ít cay, không hành...)</label>
+          <input type="text" id="note" name="note" placeholder="Ghi chú chế biến..." />
+        </div>
+        <button type="submit" class="btn btn-primary">+ Thêm món vào Order</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">💳 Cập nhật Trạng thái & Thanh toán</h2>
+      </div>
+      <form method="POST" action="/orders/<%= order.id %>/status" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <div class="form-group">
+          <label for="status">Trạng thái đơn hàng</label>
+          <select id="status" name="status">
+            <% orderStatuses.forEach(s => { %>
+              <option value="<%= s %>" <%= order.status === s ? 'selected' : '' %>><%= s %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="payment_method">Phương thức thanh toán</label>
+          <select id="payment_method" name="payment_method">
+            <% paymentMethods.forEach(pm => { %>
+              <option value="<%= pm %>" <%= order.payment_method === pm ? 'selected' : '' %>><%= pm %></option>
+            <% }) %>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Cập nhật Hóa đơn</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,152 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🧾 Quản lý Đơn hàng / Phiếu gọi món (Order)</h1>
+    <p class="page-subtitle">Mở bàn mới, phân bổ khách vào bàn ăn, thêm món gọi và theo dõi trạng thái chế biến / thanh toán.</p>
+  </div>
+</div>
+
+<% if (flash) { %>
+  <div class="alert alert-success">✅ <%= flash %></div>
+<% } %>
+<% if (error) { %>
+  <div class="alert alert-error">⚠️ <%= error %></div>
+<% } %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">➕ Tạo đơn hàng / Mở bàn mới</h2>
+  </div>
+  <form method="POST" action="/orders" class="form-grid">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <div class="form-group">
+      <label for="order_code">Mã đơn hàng *</label>
+      <input type="text" id="order_code" name="order_code" required placeholder="VD: ORD-005" />
+    </div>
+    <div class="form-group">
+      <label for="table_id">Chọn bàn ăn *</label>
+      <select id="table_id" name="table_id" required>
+        <% tables.forEach(t => { %>
+          <option value="<%= t.id %>"><%= t.table_code %> - <%= t.table_name %> (<%= t.status %>)</option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="customer_name">Tên khách / Đoàn khách *</label>
+      <input type="text" id="customer_name" name="customer_name" required placeholder="VD: Anh Tuấn - Gia đình" />
+    </div>
+    <div class="form-group">
+      <label for="guest_count">Số khách *</label>
+      <input type="number" id="guest_count" name="guest_count" min="1" max="50" value="4" required />
+    </div>
+    <div class="form-group">
+      <label for="initial_menu_item_id">Món gọi đầu tiên (Tùy chọn)</label>
+      <select id="initial_menu_item_id" name="initial_menu_item_id">
+        <option value="">-- Chọn sau trong chi tiết --</option>
+        <% menuItems.forEach(m => { %>
+          <option value="<%= m.id %>"><%= m.code %> - <%= m.name %> (<%= formatVND(m.price) %>)</option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="initial_quantity">SL món đầu</label>
+      <input type="number" id="initial_quantity" name="initial_quantity" min="1" max="20" value="1" />
+    </div>
+    <div class="form-group">
+      <label for="payment_method">Phương thức TT</label>
+      <select id="payment_method" name="payment_method">
+        <% paymentMethods.forEach(pm => { %>
+          <option value="<%= pm %>"><%= pm %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="note">Ghi chú bếp / phục vụ</label>
+      <input type="text" id="note" name="note" placeholder="Ghi chú khẩu vị khách..." />
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary">+ Tạo Order</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">📋 Danh sách Đơn hàng (<%= orders.length %> đơn)</h2>
+    <form method="GET" action="/orders" class="inline-actions">
+      <input type="text" name="q" value="<%= filters.q %>" placeholder="Tìm mã đơn, tên khách..." />
+      <select name="status">
+        <option value="">-- Tất cả trạng thái --</option>
+        <% orderStatuses.forEach(s => { %>
+          <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+        <% }) %>
+      </select>
+      <select name="table_id">
+        <option value="">-- Tất cả bàn ăn --</option>
+        <% tables.forEach(t => { %>
+          <option value="<%= t.id %>" <%= String(filters.table_id) === String(t.id) ? 'selected' : '' %>><%= t.table_code %> - <%= t.table_name %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-secondary btn-sm">Lọc</button>
+      <a href="/orders" class="btn btn-secondary btn-sm">Xóa lọc</a>
+    </form>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mã Order</th>
+          <th>Bàn ăn & Khu vực</th>
+          <th>Khách hàng</th>
+          <th>Tiến độ món</th>
+          <th>Tổng tiền</th>
+          <th>Thanh toán</th>
+          <th>Trạng thái</th>
+          <th>Cập nhật nhanh / Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.forEach(o => { %>
+          <tr>
+            <td><strong><a href="/orders/<%= o.id %>" style="color:var(--primary); text-decoration:none;"><%= o.order_code %></a></strong></td>
+            <td>
+              <strong><%= o.table_code %></strong> - <%= o.table_name %><br />
+              <span style="font-size:12px; color:var(--muted);"><%= o.area %></span>
+            </td>
+            <td>
+              <strong><%= o.customer_name %></strong> (<%= o.guest_count %> khách)<br />
+              <span style="font-size:12px; color:var(--muted);"><%= o.note %></span>
+            </td>
+            <td><strong><%= o.served_item_count %> / <%= o.item_count %></strong> món đã lên</td>
+            <td><strong><%= formatVND(o.total_amount) %></strong></td>
+            <td><%= o.payment_method %></td>
+            <td><span class="badge badge-<%= o.status %>"><%= o.status %></span></td>
+            <td>
+              <div class="inline-actions">
+                <a href="/orders/<%= o.id %>" class="btn btn-primary btn-sm">Chi tiết / Gọi món</a>
+                <form method="POST" action="/orders/<%= o.id %>/status" class="inline-actions">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <input type="hidden" name="return_to" value="list" />
+                  <select name="status" style="padding:4px 8px; font-size:12px;">
+                    <% orderStatuses.forEach(s => { %>
+                      <option value="<%= s %>" <%= o.status === s ? 'selected' : '' %>><%= s %></option>
+                    <% }) %>
+                  </select>
+                  <button type="submit" class="btn btn-secondary btn-sm">Lưu</button>
+                </form>
+                <form method="POST" action="/orders/<%= o.id %>/delete" style="display:inline;">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

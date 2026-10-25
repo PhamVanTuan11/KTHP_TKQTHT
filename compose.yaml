@@ -1,0 +1,179 @@
+services:
+  init-logs:
+    image: busybox:1.37.0
+    container_name: ro-init-logs
+    network_mode: "none"
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /logs/app /logs/nginx &&
+        touch /logs/app/app.log &&
+        chown -R 1000:1000 /logs/app &&
+        chmod 0644 /logs/app/app.log &&
+        rm -f /logs/nginx/access.log /logs/nginx/error.log &&
+        touch /logs/nginx/access.log /logs/nginx/error.log &&
+        chown -R 101:101 /logs/nginx &&
+        chmod 0644 /logs/nginx/access.log /logs/nginx/error.log
+    volumes:
+      - ro_app_logs:/logs/app
+      - ro_nginx_logs:/logs/nginx
+    restart: "no"
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ro_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      APP_DB_USER: ${APP_DB_USER:-ro_app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD is required}
+      EXPORTER_DB_USER: ${EXPORTER_DB_USER:-postgres_exporter}
+      EXPORTER_DB_PASSWORD: ${EXPORTER_DB_PASSWORD:?EXPORTER_DB_PASSWORD is required}
+    volumes:
+      - ro_postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - ro_database_network
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ro_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: ro-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-dtc245200485@ictu.edu.vn}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?PGADMIN_DEFAULT_PASSWORD is required}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "127.0.0.1:${PGADMIN_LISTEN_PORT:-8081}:80"
+    volumes:
+      - ro_pgadmin_data:/var/lib/pgadmin
+      - ./db/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - ro_database_network
+      - ro_management_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ro-app:1.0.0
+    container_name: ro-app
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      APP_PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-ro_db}
+      APP_DB_USER: ${APP_DB_USER:-ro_app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
+      APP_ADMIN_USER: ${APP_ADMIN_USER:-admin}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-dtc245200485@ictu.edu.vn}
+      STUDENT_NAME: ${STUDENT_NAME:-Phạm Văn Tuân}
+      STUDENT_ID: ${STUDENT_ID:-DTC245200485}
+      STUDENT_CLASS: ${STUDENT_CLASS:-CNTT K23I}
+      INSTRUCTOR_NAME: ${INSTRUCTOR_NAME:-Lê Khánh Dương}
+      TOPIC_CODE: ${TOPIC_CODE:-Đề 12}
+      TOPIC_TITLE: ${TOPIC_TITLE:-Hệ thống Quản lý Nhà hàng / Order}
+    volumes:
+      - ro_app_logs:/app/logs
+    networks:
+      - ro_web_network
+      - ro_database_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      init-logs:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ro-nginx
+    restart: unless-stopped
+    user: "101:101"
+    command: ["nginx", "-g", "daemon off;"]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:${NGINX_HTTP_PORT:-8080}:8080"
+      - "127.0.0.1:${NGINX_HTTPS_PORT:-8443}:8443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - ro_nginx_logs:/var/log/nginx
+    networks:
+      - ro_web_network
+      - ro_monitoring_network
+    depends_on:
+      app:
+        condition: service_healthy
+      init-logs:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8082/nginx-health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  ro_web_network:
+    name: ro_web_network
+    driver: bridge
+  ro_database_network:
+    name: ro_database_network
+    driver: bridge
+    internal: true
+  ro_management_network:
+    name: ro_management_network
+    driver: bridge
+  ro_monitoring_network:
+    name: ro_monitoring_network
+    driver: bridge
+
+volumes:
+  ro_postgres_data:
+    name: ro_postgres_data
+  ro_pgadmin_data:
+    name: ro_pgadmin_data
+  ro_app_logs:
+    name: ro_app_logs
+  ro_nginx_logs:
+    name: ro_nginx_logs

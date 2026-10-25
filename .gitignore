@@ -1,0 +1,30 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# TLS certificates and private keys
+certs/*.key
+certs/*.crt
+certs/*.pem
+certs/*.srl
+
+# Database backups
+backups/*.sql
+backups/*.dump
+
+# Dependencies and runtime logs
+node_modules/
+app/node_modules/
+logs/
+app/logs/*.log
+*.log
+
+# Local sample/output report folder (kept local, not pushed to source repo)
+FILEBBAOCAO/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

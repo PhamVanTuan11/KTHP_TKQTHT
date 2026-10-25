@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "PostgreSQL RO DB (Docker Internal)",
+      "Group": "Đề 12 - Quản lý Nhà hàng / Order",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "ro_db",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "Comment": "Kết nối nội bộ qua mạng ro_database_network tới PostgreSQL 16 (ro_db)"
+    }
+  }
+}

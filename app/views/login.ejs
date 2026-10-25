@@ -1,0 +1,41 @@
+<%- include('partials/header') %>
+
+<div class="login-wrapper">
+  <div class="card">
+    <div class="card-header">
+      <h1 class="card-title">🔐 Đăng nhập Quản trị Nhà hàng / Order</h1>
+    </div>
+    <p class="page-subtitle" style="margin-bottom: 14px;">
+      Xác thực phiên làm việc để quản lý thực đơn món ăn, đơn hàng (Order), sơ đồ bàn ăn và nhật ký kiểm toán.
+    </p>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/login" style="display:flex; flex-direction:column; gap:14px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <input type="hidden" name="redirect" value="<%= redirect %>" />
+
+      <div class="form-group">
+        <label for="username">Tên tài khoản quản trị</label>
+        <input type="text" id="username" name="username" required autocomplete="username" placeholder="Nhập username (ví dụ: admin)" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Nhập mật khẩu được cấp trong .env" />
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top:4px; padding:10px;">
+        Đăng nhập vào hệ thống
+      </button>
+    </form>
+
+    <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted);">
+      <strong>Bảo mật phiên:</strong> Mật khẩu băm Bcrypt (cost 10), bảo vệ CSRF token (`_csrf`), giới hạn tốc độ 10 lần/15 phút và lưu phiên trực tiếp trong PostgreSQL (`ro_db`).
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
